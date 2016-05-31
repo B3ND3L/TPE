@@ -1,0 +1,42 @@
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		<title>
+			Test WebGL
+		</title>
+		
+		<script type="text/javascript" src="src/jquery-2.2.4.min.js"></script>
+		<script type="text/javascript" src="src/sylvester.js"></script>
+		<script type="text/javascript" src="src/glUtils.js"></script>
+		<script type="text/javascript" src="src/parser.js"></script>
+		<script type="text/javascript" src="src/webGL.js"></script>
+
+		<script id="shader-vs" type="x-shader/x-vertex">
+			attribute vec3 aVertexPosition;
+			attribute vec4 aVertexColor;
+
+			uniform mat4 uMVMatrix;
+			uniform mat4 uPMatrix;
+
+			varying lowp vec4 vColor;
+
+			void main(void) {
+				gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+				vColor = aVertexColor;
+			}
+		</script>
+
+		<script id="shader-fs" type="x-shader/x-fragment">
+			varying lowp vec4 vColor;
+
+			void main(void) {
+				gl_FragColor = vColor;
+			}
+		</script>
+	</head>
+	<body onload="start()">
+		<canvas id="glcanvas" width="640" height="480"> 
+			Votre navigateur ne semble pas supporter l'élément HTML5 <code>&lt;canvas&gt;</code>.
+		</canvas>
+	</body>
+</html>

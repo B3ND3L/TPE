@@ -1,0 +1,10 @@
+<!ELEMENT cabanes (groupe+)>
+<!ELEMENT groupe (taille,cabane+)>
+<!ATTLIST groupe id CDATA #REQUIRED>
+<!ENTITY % coordonnee "(ligne,colonne)" >
+<!ELEMENT ligne (#PCDATA)>
+<!ELEMENT colonne (#PCDATA)>
+<!ELEMENT taille %coordonnee;>
+<!ELEMENT cabane (coordonnee,orientation)>
+<!ELEMENT coordonnee %coordonnee;>
+<!ELEMENT orientation (#PCDATA)>
