@@ -34,10 +34,10 @@ var tetha=0;
 var alpha=0.0;
 var distance=100.0; 
 var posX = 0; 
-var posY = 1;
-var posZ = 10;
+var posY = 1.5;
+var posZ = 5;
 var lookX = 0;
-var lookY = 1;
+var lookY = 1.5;
 var lookZ = 0;
 
 var mvMatrixStack = [];
@@ -412,7 +412,7 @@ function drawScene() {
 	lookY = distance * Math.cos(tetha) + 1.0;
 
 	var projectionMatrix = makePerspective(100, 640.0/480.0, 0.1, 100000.0);
-	var lookMatrix = makeLookAt(posX, 1.5, posZ, lookX, lookY, lookZ, 0.0,1.0,0.0);
+	var lookMatrix = makeLookAt(posX, posY, posZ, lookX, lookY, lookZ, 0.0,1.0,0.0);
 	
 	cameraMatrix = projectionMatrix;
 	cameraMatrix = cameraMatrix.multiply(lookMatrix);
@@ -629,9 +629,9 @@ function souris(event)
 
 	if(dx<0) alpha -= D_ANGLE;
 	else if(dx>0) alpha += D_ANGLE;
-	if(dy>0 && tetha >=-Math.PI/2.0) tetha -= D_ANGLE;
-	else if(dy<0 && tetha<= Math.PI) tetha += D_ANGLE;
-	
+	if(dy<0 && tetha <=Math.PI) tetha += D_ANGLE;
+	else if(dy>0 && tetha>= 0) tetha -= D_ANGLE;
+		
 	ancien_x=x;
 	ancien_y=y;
  
