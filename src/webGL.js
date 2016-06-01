@@ -39,8 +39,8 @@ var lookZ = 0;
 
 var mvMatrixStack = [];
 
-var tabCabane = getCabanes();
-
+var tabCabane;
+getCabanes();
 
 //
 // start
