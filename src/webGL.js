@@ -4,11 +4,19 @@ var gl;
 var cabaneVerticesBuffer;
 var cabaneVerticesColorBuffer;
 var cabaneVerticesIndexBuffer;
-var cabaneVerticesIndexBuffer;
+
+var cubeVerticesBuffer;
+var cubeVerticesColorBuffer;
+var cubeVerticesIndexBuffer;
+
+var cubeTexture;
+var cubeImage;
+
 var cubeRotation = 0.0;
 
 var mvMatrix;
-var shaderProgram;
+var shaderProgramCabane;
+var shaderProgramCube;
 var vertexPositionAttribute;
 var vertexColorAttribute;
 var cameraMatrix;
@@ -45,9 +53,7 @@ function start() {
   canvas.addEventListener("mousemove",souris);
   document.addEventListener("keydown",keyboard);
 
-  initWebGL(canvas);      // Initialize the GL context
-
-  // Only continue if WebGL is available and working
+  initWebGL(canvas);      // Initialise GL context
 
   if (gl) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
@@ -55,29 +61,23 @@ function start() {
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
     gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
 
-    // Initialize the shaders; this is where all the lighting for the
-    // vertices and so forth is established.
 
+	// On lance l'initialisation des buffers et des shaders
     initShaders();
-
-    // Here's where we call the routine that builds all the objects
-    // we'll be drawing.
-
     initBuffers();
+    initTextures();
 
-    // Set up to draw the scene periodically.
-
+    // On affiche la scene avec un frame rate à 35FPS
     setInterval(drawScene, 1000/35);
-    //drawScene();
   }
 }
 
 //
 // initWebGL
 //
-// Initialize WebGL, returning the GL context or null if
-// WebGL isn't available or could not be initialized.
+// on initialise WebGL dans avec la variable gl
 //
+
 function initWebGL() {
   gl = null;
 
@@ -87,130 +87,257 @@ function initWebGL() {
   catch(e) {
   }
 
-  // If we don't have a GL context, give up now
+  // Si WebGL ne fonctionne pas
 
   if (!gl) {
-    alert("Unable to initialize WebGL. Your browser may not support it.");
+    alert("Impossible d'initialiser WebGL, veuillez verifier la compatibilité de votre navigateur.");
   }
 }
 
 //
 // initBuffers
 //
-// Initialize the buffers we'll need. For this demo, we just have
-// one object -- a simple two-dimensional square.
+// initialise les buffers tel que cabane ou cube
 //
+
 function initBuffers() {
 
-  cabaneVerticesBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, cabaneVerticesBuffer);
-  var d = 0.5;
-  var vertices = [
-    // Front face
-    //First Pane
-    -d,  d,  d,		//A
-     0,  d,  d,		//B
-     0, -d,  d,		//E
-    -d, -d,  d,		//F
-    //Second Pane
-     0,  d,  d,		//B
-     d,  d,  d,		//C
-     d, -d,  d,		//D
-     0, -d,  d,		//E
-    // Right Face
-    // First Pane
-     d,  d,  d,		//C
-     d, -d,  d,		//D
-     d, -d,  0,		//I
-     d,  d,  0,		//H
-    // Second Pane
-     d,  d,  0,		//H
-     d,  d, -d,		//M
-     d, -d, -d,		//N
-     d, -d,  0,		//I
-    // Back Face
-    // First Pane
-     d,  d, -d,		//M
-     d, -d, -d,		//N
-     0, -d, -d,		//O
-     0,  d, -d,		//L
-    // Seconde Pane
-     0,  d, -d,		//L
-    -d,  d, -d,		//K
-    -d, -d, -d,		//P
-     0, -d, -d,		//O
-    // Left Face
-    // First Pane
-    -d, -d,  d,		//F
-    -d, -d,  0,		//J
-    -d,  d,  0,		//G
-    -d,  d,  d,		//A
-    // Second Pane
-    -d, -d,  0,		//J
-    -d, -d, -d,		//P
-    -d,  d, -d,		//K
-    -d,  d,  0,		//G
-    // Top face
-    -d,  d,  d,		//A
-     d,  d,  d,		//C
-     d,  d, -d,		//M
-    -d,  d, -d,		//K
-    // Bottom face
-    -d, -d,  d,		//F
-     d, -d,  d,		//D
-     d, -d, -d,		//N
-    -d, -d, -d		//P
-     
-  ];
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-  var colors = [
-    [0.0,  1.0,  1.0,  1.0],   
-    [1.0,  0.0,  0.0,  1.0],   
-    [0.0,  1.0,  0.0,  1.0],    
-    [0.0,  0.0,  1.0,  1.0],   
-    [1.0,  1.0,  0.0,  1.0],    
-    [1.0,  0.0,  1.0,  1.0],
-    [0.5,  0.2,  0.5,  0.0],
-    [0.2,  0.7,  0.6,  1.0],
-    [0.8,  1.0,  0.2,  1.0],
-    [1.0,  1.0,  1.0,  1.0]
-  ];
-  var generatedColors = [];
-  for (j=0; j<10; j++) {
-    var c = colors[j];
-    for (var i=0; i<4; i++) {
-      generatedColors = generatedColors.concat(c);
-    }
+	//CABANE
+	{
+		cabaneVerticesBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, cabaneVerticesBuffer);
+		var d = 0.5;
+		var vertices = [
+			// Front face
+			//First Pane
+			-d,  d,  d,		//A
+			 0,  d,  d,		//B
+			 0, -d,  d,		//E
+			-d, -d,  d,		//F
+			//Second Pane
+			 0,  d,  d,		//B
+			 d,  d,  d,		//C
+			 d, -d,  d,		//D
+			 0, -d,  d,		//E
+			// Right Face
+			// First Pane
+			 d,  d,  d,		//C
+			 d, -d,  d,		//D
+			 d, -d,  0,		//I
+			 d,  d,  0,		//H
+			// Second Pane
+			 d,  d,  0,		//H
+			 d,  d, -d,		//M
+			 d, -d, -d,		//N
+			 d, -d,  0,		//I
+			// Back Face
+			// First Pane
+			 d,  d, -d,		//M
+			 d, -d, -d,		//N
+			 0, -d, -d,		//O
+			 0,  d, -d,		//L
+			// Seconde Pane
+			 0,  d, -d,		//L
+			-d,  d, -d,		//K
+			-d, -d, -d,		//P
+			 0, -d, -d,		//O
+			// Left Face
+			// First Pane
+			-d, -d,  d,		//F
+			-d, -d,  0,		//J
+			-d,  d,  0,		//G
+			-d,  d,  d,		//A
+			// Second Pane
+			-d, -d,  0,		//J
+			-d, -d, -d,		//P
+			-d,  d, -d,		//K
+			-d,  d,  0,		//G
+			// Top face
+			-d,  d,  d,		//A
+			 d,  d,  d,		//C
+			 d,  d, -d,		//M
+			-d,  d, -d,		//K
+			// Bottom face
+			-d, -d,  d,		//F
+			 d, -d,  d,		//D
+			 d, -d, -d,		//N
+			-d, -d, -d		//P
+
+		];
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+		var colors = [
+			[0.0,  1.0,  1.0,  1.0],   
+			[1.0,  0.0,  0.0,  1.0],   
+			[0.0,  1.0,  0.0,  1.0],    
+			[0.0,  0.0,  1.0,  1.0],   
+			[1.0,  1.0,  0.0,  1.0],    
+			[1.0,  0.0,  1.0,  1.0],
+			[0.5,  0.2,  0.5,  0.0],
+			[0.2,  0.7,  0.6,  1.0],
+			[0.8,  1.0,  0.2,  1.0],
+			[1.0,  1.0,  1.0,  1.0]
+		];
+		var generatedColors = [];
+		for (j=0; j<10; j++) {
+		var c = colors[j];
+		for (var i=0; i<4; i++) {
+		generatedColors = generatedColors.concat(c);
+		}
+		}
+
+		cabaneVerticesColorBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, cabaneVerticesColorBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
+
+		// Build the element array buffer; this specifies the indices
+		// into the vertex array for each face's vertices.
+
+		cabaneVerticesIndexBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cabaneVerticesIndexBuffer);
+
+		// This array defines each face as two triangles, using the
+		// indices into the vertex array to specify each triangle's
+		// position.
+
+		var cabaneVertexIndices = [
+			0, 1, 2,	 0, 2, 3,	 4, 5, 6,	 4, 6, 7,	// Front
+			8, 9,10,	 8,10,11,	12,14,15,	12,13,14,	// Right
+			16,17,18,	16,18,19,	20,21,22,	20,22,23,	// Back
+			24,25,26,	24,26,27,	28,29,30,	28,30,31,	// Left
+			32,33,34,	32,34,35,							// Top
+			36,37,38,	36,38,39							// Bottom
+		]
+
+		// Now send the element array to GL
+
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+		new Uint16Array(cabaneVertexIndices), gl.STATIC_DRAW);
+	}
+
+	//CUBE STANDARD
+	{
+		cubeVerticesBuffer = gl.createBuffer();
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesBuffer);
+
+		var vertices = [
+			// Front face
+			-1.0, -1.0,  1.0,
+			1.0, -1.0,  1.0,
+			1.0,  1.0,  1.0,
+			-1.0,  1.0,  1.0,
+	
+			// Back face
+			-1.0, -1.0, -1.0,
+			-1.0,  1.0, -1.0,
+			1.0,  1.0, -1.0,
+			1.0, -1.0, -1.0,
+	
+			// Top face
+			-1.0,  1.0, -1.0,
+			-1.0,  1.0,  1.0,
+			1.0,  1.0,  1.0,
+			1.0,  1.0, -1.0,
+	
+			// Bottom face
+			-1.0, -1.0, -1.0,
+			1.0, -1.0, -1.0,
+			1.0, -1.0,  1.0,
+			-1.0, -1.0,  1.0,
+	
+			// Right face
+			1.0, -1.0, -1.0,
+			1.0,  1.0, -1.0,
+			1.0,  1.0,  1.0,
+			1.0, -1.0,  1.0,
+	
+			// Left face
+			-1.0, -1.0, -1.0,
+			-1.0, -1.0,  1.0,
+			-1.0,  1.0,  1.0,
+			-1.0,  1.0, -1.0
+		];
+
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+		cubeVerticesTextureCoordBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTextureCoordBuffer);
+
+		var textureCoordinates = [
+			// Front
+			0.25, 0.5,
+			0.5,  0.5,
+			0.5,  0.75,
+			0.25, 0.75,
+			// Back
+			0.75, 0.5,
+			1.0,  0.5,
+			1.0,  0.75,
+			0.75, 0.75,
+			// Top
+			0.25, 0.75,
+			0.5,  0.75,
+			0.5,  1.0,
+			0.25, 1.0,
+			// Bottom
+			0.25, 0.25,
+			0.5,  0.25,
+			0.5,  0.5,
+			0.25, 0.5,
+			// Right
+			0.5,  0.5,
+			0.75, 0.5,
+			0.75, 0.75,
+			0.5,  0.75,
+			// Left
+			0.0,  0.50,
+			0.25, 0.5,
+			0.25, 0.75,
+			0.0,  0.75
+		];
+
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
+				gl.STATIC_DRAW);
+
+		cubeVerticesIndexBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVerticesIndexBuffer);
+
+
+		var cubeVertexIndices = [
+			0,  1,  2,      0,  2,  3,    // front
+			4,  5,  6,      4,  6,  7,    // back
+			8,  9,  10,     8,  10, 11,   // top
+			12, 13, 14,     12, 14, 15,   // bottom
+			16, 17, 18,     16, 18, 19,   // right
+			20, 21, 22,     20, 22, 23    // left
+		]
+
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+		new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
+
   }
-  
-  cabaneVerticesColorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, cabaneVerticesColorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
 
-  // Build the element array buffer; this specifies the indices
-  // into the vertex array for each face's vertices.
+}
 
-  cabaneVerticesIndexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cabaneVerticesIndexBuffer);
+//
+// Initialisation des textures
+//
+function initTextures() {
+  cubeTexture = gl.createTexture();
+  cubeImage = new Image();
+  cubeImage.onload = function() { handleTextureLoaded(cubeImage, cubeTexture); }
+  cubeImage.src = "rsc/tux.png";
+}
 
-  // This array defines each face as two triangles, using the
-  // indices into the vertex array to specify each triangle's
-  // position.
-
-  var cabaneVertexIndices = [
-    0, 1, 2,	 0, 2, 3,	 4, 5, 6,	 4, 6, 7,	// Front
-    8, 9,10,	 8,10,11,	12,14,15,	12,13,14,	// Right
-   16,17,18,	16,18,19,	20,21,22,	20,22,23,	// Back
-   24,25,26,	24,26,27,	28,29,30,	28,30,31,	// Left
-   32,33,34,	32,34,35,							// Top
-   36,37,38,	36,38,39							// Bottom
-   
-  ]
-
-  // Now send the element array to GL
-
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-      new Uint16Array(cabaneVertexIndices), gl.STATIC_DRAW);
+function handleTextureLoaded(image, texture) {
+  console.log("handleTextureLoaded, image = " + image);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
+        gl.UNSIGNED_BYTE, image);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 //
@@ -242,6 +369,7 @@ function drawScene() {
 	cameraMatrix = projectionMatrix;
 	cameraMatrix = cameraMatrix.multiply(lookMatrix);
 	
+	activeCabaneShader();
 	tabCabane.forEach(function(c) {
 		mvPushMatrix();
 			mvTranslate([c.x, 1, c.y]);
@@ -250,10 +378,29 @@ function drawScene() {
 		mvPopMatrix();
 	});
 
+	activeCubeShader();
+	mvPushMatrix();
+		mvScale([1,1,1]);
+		afficherCube();
+	mvPopMatrix();
+
 }
 
 function afficherCube(){
-	
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesBuffer);
+	gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTextureCoordBuffer);
+	gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
+	gl.uniform1i(gl.getUniformLocation(shaderProgramCube, "uSampler"), 0);
+
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVerticesIndexBuffer);
+	setMatrixUniforms(shaderProgramCube);
+	gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+
 }
 
 function afficherCabane(){
@@ -264,7 +411,7 @@ function afficherCabane(){
 	gl.vertexAttribPointer(vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
 
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cabaneVerticesIndexBuffer);
-	setMatrixUniforms();
+	setMatrixUniforms(shaderProgramCabane);
 	gl.drawElements(gl.TRIANGLES, 56, gl.UNSIGNED_SHORT, 0);
 }
 
@@ -273,30 +420,63 @@ function afficherCabane(){
 //
 // Initialize the shaders, so WebGL knows how to light our scene.
 //
-function initShaders() {
-  var fragmentShader = getShader(gl, "shader-fs");
-  var vertexShader = getShader(gl, "shader-vs");
+function initShaders() { //TODO
+  var fragmentShader = getShader(gl, "shader-fs-cabane");
+  var vertexShader = getShader(gl, "shader-vs-cabane");
 
   // Create the shader program
 
-  shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
+  shaderProgramCabane = gl.createProgram();
+  gl.attachShader(shaderProgramCabane, vertexShader);
+  gl.attachShader(shaderProgramCabane, fragmentShader);
+  gl.linkProgram(shaderProgramCabane);
 
   // If creating the shader program failed, alert
 
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+  if (!gl.getProgramParameter(shaderProgramCabane, gl.LINK_STATUS)) {
     alert("Unable to initialize the shader program.");
   }
+  
+  ////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
+  
+  var fragmentShaderC = getShader(gl, "shader-fs-cube");
+  var vertexShaderC = getShader(gl, "shader-vs-cube");
 
-  gl.useProgram(shaderProgram);
+  // Create the shader program
 
-  vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-  gl.enableVertexAttribArray(vertexPositionAttribute);
+  shaderProgramCube = gl.createProgram();
+  gl.attachShader(shaderProgramCube, vertexShaderC);
+  gl.attachShader(shaderProgramCube, fragmentShaderC);
+  gl.linkProgram(shaderProgramCube);
 
-  vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
-  gl.enableVertexAttribArray(vertexColorAttribute);
+  // If creating the shader program failed, alert
+
+  if (!gl.getProgramParameter(shaderProgramCube, gl.LINK_STATUS)) {
+    alert("Unable to initialize the shader program: " + gl.getProgramInfoLog(shader));
+  }
+}
+
+function activeCabaneShader(){
+	gl.useProgram(shaderProgramCabane);
+
+	vertexPositionAttribute = gl.getAttribLocation(shaderProgramCabane, "aVertexPosition");
+	gl.enableVertexAttribArray(vertexPositionAttribute);
+
+	vertexColorAttribute = gl.getAttribLocation(shaderProgramCabane, "aVertexColor");
+	gl.enableVertexAttribArray(vertexColorAttribute);
+
+}
+
+function activeCubeShader(){
+	gl.useProgram(shaderProgramCube);
+
+	vertexPositionAttribute = gl.getAttribLocation(shaderProgramCube, "aVertexPosition");
+	gl.enableVertexAttribArray(vertexPositionAttribute);
+
+	textureCoordAttribute = gl.getAttribLocation(shaderProgramCube, "aTextureCoord");
+	gl.enableVertexAttribArray(textureCoordAttribute);
 }
 
 //
@@ -473,11 +653,11 @@ function mvScale(v){
 	multMatrix(m);
 }
 
-function setMatrixUniforms() {
-  var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+function setMatrixUniforms(program) {
+  var pUniform = gl.getUniformLocation(program, "uPMatrix");
   gl.uniformMatrix4fv(pUniform, false, new Float32Array(cameraMatrix.flatten()));
 
-  var mvUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+  var mvUniform = gl.getUniformLocation(program, "uMVMatrix");
   gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.flatten()));
 }
 
