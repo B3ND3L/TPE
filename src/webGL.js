@@ -9,8 +9,11 @@ var cubeVerticesBuffer;
 var cubeVerticesColorBuffer;
 var cubeVerticesIndexBuffer;
 
-var cubeTexture;
-var cubeImage;
+var cielTexture;
+var cielImage;
+
+var solTexture;
+var solImage;
 
 var cubeRotation = 0.0;
 
@@ -260,44 +263,85 @@ function initBuffers() {
 
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
-		cubeVerticesTextureCoordBuffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTextureCoordBuffer);
+		cubeVerticesTexturePatronCoordBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTexturePatronCoordBuffer);
 
-		var textureCoordinates = [
+		//Coordonnée texture patron
+
+		 var texturePatronCoordinates = [
 			// Front
 			0.25, 0.5,
 			0.5,  0.5,
-			0.5,  0.75,
-			0.25, 0.75,
+			0.5,  0.25,
+			0.25, 0.25,
 			// Back
-			0.75, 0.5,
 			1.0,  0.5,
-			1.0,  0.75,
-			0.75, 0.75,
+			1.0,  0.25,
+			0.75, 0.25,
+			0.75, 0.5,
 			// Top
-			0.25, 0.75,
-			0.5,  0.75,
-			0.5,  1.0,
-			0.25, 1.0,
-			// Bottom
+			0.25, 0.0,
 			0.25, 0.25,
 			0.5,  0.25,
+			0.5,  0.0,
+			// Bottom
+			0.25, 0.75,
+			0.5,  0.75,
 			0.5,  0.5,
 			0.25, 0.5,
 			// Right
-			0.5,  0.5,
 			0.75, 0.5,
-			0.75, 0.75,
-			0.5,  0.75,
+			0.75, 0.25,
+			0.5,  0.25,
+			0.5,  0.5,
 			// Left
-			0.0,  0.50,
+			0.0,  0.5,
 			0.25, 0.5,
-			0.25, 0.75,
-			0.0,  0.75
+			0.25, 0.25,
+			0.0,  0.25
+		  ];
+		  
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texturePatronCoordinates),
+			gl.STATIC_DRAW);
+		  
+		cubeVerticesTextureRepeteCoordBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTextureRepeteCoordBuffer);
+
+		var textureRepeteCoordinates = [
+			// Front
+			0.0,  	0.0,
+			1000.0, 0.0,
+			1000.0,	1000.0,
+			0.0,  	1000.0,
+			// Back
+			0.0,  	0.0,
+			1000.0, 0.0,
+			1000.0, 1000.0,
+			0.0,  	1000.0,
+			// Top
+			0.0,  	0.0,
+			1000.0, 0.0,
+			1000.0,	1000.0,
+			0.0,  	1000.0,
+			// Bottom
+			0.0,  	0.0,
+			1000.0, 0.0,
+			1000.0,	1000.0,
+			0.0,  	1000.0,
+			// Right
+			0.0,  	0.0,
+			1000.0, 0.0,
+			1000.0,	1000.0,
+			0.0,  	1000.0,
+			// Left
+			0.0,  	0.0,
+			1000.0, 0.0,
+			1000.0,	1000.0,
+			0.0,  	1000.0,
 		];
 
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
-				gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureRepeteCoordinates),
+			gl.STATIC_DRAW);
 
 		cubeVerticesIndexBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVerticesIndexBuffer);
@@ -323,17 +367,21 @@ function initBuffers() {
 // Initialisation des textures
 //
 function initTextures() {
-  cubeTexture = gl.createTexture();
-  cubeImage = new Image();
-  cubeImage.onload = function() { handleTextureLoaded(cubeImage, cubeTexture); }
-  cubeImage.src = "rsc/tux.png";
+	cielTexture = gl.createTexture();
+	cielImage = new Image();
+	cielImage.onload = function() { handleTextureLoaded(cielImage, cielTexture); }
+	cielImage.src = "rsc/ciel.png";
+
+	solTexture = gl.createTexture();
+	solImage = new Image();
+	solImage.onload = function() { handleTextureLoaded(solImage, solTexture); }
+	solImage.src = "rsc/sol.png";
+  
 }
 
 function handleTextureLoaded(image, texture) {
-  console.log("handleTextureLoaded, image = " + image);
   gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
-        gl.UNSIGNED_BYTE, image);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
   gl.generateMipmap(gl.TEXTURE_2D);
@@ -360,11 +408,11 @@ function drawScene() {
 	//mvRotate(angle,[0,1,0]);
 	
 	lookX = distance * Math.sin(tetha) * Math.cos(alpha) + posX;
-	lookZ = distance * Math.sin(tetha) * Math.sin(alpha) + -posZ;
+	lookZ = distance * Math.sin(tetha) * Math.sin(alpha) + posZ;
 	lookY = distance * Math.cos(tetha) + 1.0;
 
-	var projectionMatrix = makePerspective(100, 640.0/480.0, 0.1, 1000.0);
-	var lookMatrix = makeLookAt(posX, 1.0, posZ, lookX, lookY, lookZ, 0.0,1.0,0.0);
+	var projectionMatrix = makePerspective(100, 640.0/480.0, 0.1, 100000.0);
+	var lookMatrix = makeLookAt(posX, 1.5, posZ, lookX, lookY, lookZ, 0.0,1.0,0.0);
 	
 	cameraMatrix = projectionMatrix;
 	cameraMatrix = cameraMatrix.multiply(lookMatrix);
@@ -378,23 +426,46 @@ function drawScene() {
 		mvPopMatrix();
 	});
 
-	activeCubeShader();
+	activeTextureShader();
 	mvPushMatrix();
-		mvScale([1,1,1]);
-		afficherCube();
+		mvScale([1000,1000,1000]);
+		afficherCiel();
+	mvPopMatrix();
+	
+	mvPushMatrix();
+		mvTranslate([0,-0.5,0]);
+		mvScale([1000,1,1000]);
+		afficherSol();
 	mvPopMatrix();
 
 }
 
-function afficherCube(){
+function afficherCiel(){
 	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesBuffer);
 	gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTextureCoordBuffer);
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTexturePatronCoordBuffer);
 	gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
 	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
+	gl.bindTexture(gl.TEXTURE_2D, cielTexture);
+	gl.uniform1i(gl.getUniformLocation(shaderProgramCube, "uSampler"), 0);
+
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVerticesIndexBuffer);
+	setMatrixUniforms(shaderProgramCube);
+	gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+
+}
+
+function afficherSol(){
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesBuffer);
+	gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTextureRepeteCoordBuffer);
+	gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, solTexture);
 	gl.uniform1i(gl.getUniformLocation(shaderProgramCube, "uSampler"), 0);
 
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVerticesIndexBuffer);
@@ -469,7 +540,7 @@ function activeCabaneShader(){
 
 }
 
-function activeCubeShader(){
+function activeTextureShader(){
 	gl.useProgram(shaderProgramCube);
 
 	vertexPositionAttribute = gl.getAttribLocation(shaderProgramCube, "aVertexPosition");
@@ -561,11 +632,8 @@ function souris(event)
 	if(dy>0 && tetha >=-Math.PI/2.0) tetha -= D_ANGLE;
 	else if(dy<0 && tetha<= Math.PI) tetha += D_ANGLE;
 	
-	console.log("tetha : ");
-	console.log(tetha);
-
- ancien_x=x;
- ancien_y=y;
+	ancien_x=x;
+	ancien_y=y;
  
 }
 
@@ -574,9 +642,13 @@ function keyboard(key, x, y){
 	var vecteurX = lookX - posX;
 	var vecteurZ = lookZ - posZ;
 	
+	var norme = Math.sqrt(vecteurX*vecteurX+vecteurZ*vecteurZ);
+	vecteurX /= norme;
+	vecteurZ /= norme;
+	
 	var vecteurPerpendiculaireX = -vecteurZ;
 	var vecteurPerpendiculaireZ = vecteurX;
-	var pas = 0.004;
+	var pas = 0.5;
 	
 	switch(key.keyCode){
 	case 90 : 
@@ -594,7 +666,7 @@ function keyboard(key, x, y){
 			posZ -= vecteurZ * pas;
 			lookZ -= vecteurZ * pas; 
 		 }
-		 if(-vecteurX<0 && posX > 0 || -vecteurX > 0 && posX < 607){
+		 if(-vecteurX<0 && posX > 0 || -vecteurX > 0){
 			posX -= vecteurX * pas;
 			lookX -= vecteurX * pas;
 		}
@@ -628,11 +700,11 @@ function keyboard(key, x, y){
 //
 
 function loadIdentity() {
-  mvMatrix = Matrix.I(4);
+	mvMatrix = Matrix.I(4);
 }
 
 function multMatrix(m) {
-  mvMatrix = mvMatrix.x(m);
+	mvMatrix = mvMatrix.x(m);
 }
 
 function mvTranslate(v) {
@@ -641,10 +713,10 @@ function mvTranslate(v) {
 
 
 function mvRotate(angle, v) {
-  var inRadians = angle * Math.PI / 180.0;
+	var inRadians = angle * Math.PI / 180.0;
 
-  var m = Matrix.Rotation(inRadians, $V([v[0], v[1], v[2]])).ensure4x4();
-  multMatrix(m);
+	var m = Matrix.Rotation(inRadians, $V([v[0], v[1], v[2]])).ensure4x4();
+	multMatrix(m);
 }
 
 function mvScale(v){
@@ -654,27 +726,27 @@ function mvScale(v){
 }
 
 function setMatrixUniforms(program) {
-  var pUniform = gl.getUniformLocation(program, "uPMatrix");
-  gl.uniformMatrix4fv(pUniform, false, new Float32Array(cameraMatrix.flatten()));
+	var pUniform = gl.getUniformLocation(program, "uPMatrix");
+	gl.uniformMatrix4fv(pUniform, false, new Float32Array(cameraMatrix.flatten()));
 
-  var mvUniform = gl.getUniformLocation(program, "uMVMatrix");
-  gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.flatten()));
+	var mvUniform = gl.getUniformLocation(program, "uMVMatrix");
+	gl.uniformMatrix4fv(mvUniform, false, new Float32Array(mvMatrix.flatten()));
 }
 
 function mvPushMatrix(m) {
-  if (m) {
-    mvMatrixStack.push(m.dup());
-    mvMatrix = m.dup();
-  } else {
-    mvMatrixStack.push(mvMatrix.dup());
-  }
+	if (m) {
+		mvMatrixStack.push(m.dup());
+		mvMatrix = m.dup();
+	} else {
+		mvMatrixStack.push(mvMatrix.dup());
+	}
 }
 
 function mvPopMatrix() {
-  if (!mvMatrixStack.length) {
-    throw("Can't pop from an empty matrix stack.");
-  }
+	if (!mvMatrixStack.length) {
+		throw("Can't pop from an empty matrix stack.");
+	}
 
-  mvMatrix = mvMatrixStack.pop();
-  return mvMatrix;
+	mvMatrix = mvMatrixStack.pop();
+	return mvMatrix;
 }
