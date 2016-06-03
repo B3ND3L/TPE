@@ -21,5 +21,13 @@ class Face {
 		$this->_gauche->random();
 		$this->_droit->random();
 	}
+	
+	public function ressemble($face) {
+		if($this->_gauche->getCouleur()==$face->getGauche()->getCouleur() && $this->_droit->getCouleur()==$face->getDroit()->getCouleur())
+			return true;
+		if($this->_gauche->getCouleur()==$face->getDroit()->getCouleur() && $this->_gauche->getCouleur()==$face->getDroit()->getCouleur())
+			return true;
+		return false;
+	}
 }
 ?>

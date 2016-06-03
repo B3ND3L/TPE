@@ -4,7 +4,7 @@
 		<title>
 			Test WebGL
 		</title>
-		
+		<link type="text/css" rel="stylesheet" href="style.css"/>
 		<script type="text/javascript" src="src/jquery-2.2.4.min.js"></script>
 		<script type="text/javascript" src="src/sylvester.js"></script>
 		<script type="text/javascript" src="src/glUtils.js"></script>
@@ -61,8 +61,13 @@
 		
 	</head>
 	<body onload="start()">
-		<canvas id="glcanvas" width="640" height="480"> 
+		<canvas id="glcanvas" width="1280" height="720"> 
 			Votre navigateur ne semble pas supporter l'élément HTML5 <code>&lt;canvas&gt;</code>.
 		</canvas>
+		<form>
+			<input type="number" id="distance" value="2"/>
+			<input type="text" id="seed" placeholder="SEED"/>
+			<input type="button" name="rafraichir" value="rafraichir" onclick="appelPhp();" />
+		</form>
 	</body>
 </html>

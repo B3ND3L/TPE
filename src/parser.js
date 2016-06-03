@@ -1,44 +1,16 @@
-function Cabane(x, y){
-	this.x = x;
-	this.y = y;
-	this.coloration = "";
-}
-
-function getCabanes(){
+function appelPhp(){
 	
-	/*var array = [];
+	var seedUser = $("#seed").val();
+	var distUser = $("#distance").val();
 	
-	array[0] = new Cabane(0,0);
-	array[1] = new Cabane(2,0);
-	array[2] = new Cabane(4,0);
-	array[3] = new Cabane(6,0);
-	array[4] = new Cabane(8,0);
+	if(seedUser == undefined ) seedUser = "";
+	if(distUser == undefined ) distUser = 2;
 	
-	return array;*/
-	
-	return connectPhp();
-	
-	//return lireJSon();
-	
-}
-
-function connectPhp(){
-	
-	$.post( "php/connexionAjax.php", { request : "crypto" })
+	$.post( "php/Calcul.php", { distance : distUser, seed : seedUser })
 	.done(function( data ) {
-		//alert( "Data Received" );
-		tabCabane=lireJSon(data);
+		console.log(data);
+		tabCabane=jQuery.parseJSON(data).cabanes;
+		seed=jQuery.parseJSON(data).seed;
+		$("#seed").val(seed);
 	});
-}
-
-function lireJSon(json){
-
-	//var json = '{"cabanes":[{"x":0,"y":0,"coloration":"coucou"},{"x":3,"y":3,"coloration":"youhou"}]}';
-	console.log(json);
-	var arrayCabane = jQuery.parseJSON(json).cabanes;
-	//console.log(arrayCabane);
-	/*o.forEach(function(v){
-		console.log(v);
-	});*/
-	return arrayCabane;
 }

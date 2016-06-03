@@ -40,9 +40,6 @@ class Calcul{
 	
 	// conversion de seed (String -> int)
 	public function getSeed($phrase) {
-		// si la seed dépasse la limite
-		if(strlen($phrase)>11)
-			$phrase=substr($phrase,0,11);
 		$nb=0;
 		// conversion
 		for($i=0;$i<strlen($phrase);$i++)
@@ -50,15 +47,31 @@ class Calcul{
 		return $nb;
 	}
 	
+	public function calculSeed() {
+		$chaine="abcdefghijklmnopkrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		$retour="";
+		for($i=0;$i<10;$i++)
+			$retour.=$chaine[rand(0,strlen($chaine)-1)];
+		return $retour;
+	}
+	
 	// aléatoire
-	public function ramdom($phrase) {
-		srand($this->getSeed($phrase));
+	public function ramdom($phrase,$distance) {
+		if(strlen($phrase)==0)
+			$phrase=$this->calculSeed();
+		// si la seed dépasse la limite
+		if(strlen($phrase)>10)
+			$phrase=substr($phrase,0,10);
+		srand((integer)$this->getSeed($phrase));
 		for($i=1;$i<=count($this->_tab);$i++) // pour chaque groupe
 			for($j=0;$j<$this->_tab[$i]->getLigne();$j++) // pour chaque ligne
 				for($k=0;$k<$this->_tab[$i]->getColonne();$k++) { // pour chaque colonne
-    				$this->_tab[$i]->getCabane($j,$k)->random(); // aléatoire sur la cabane
-    				$this->accepte($i,$j,$k); // s'assurer que la cabane est unique
+    				do {
+    					$this->_tab[$i]->getCabane($j,$k)->random(); // aléatoire sur la cabane
+    					$this->accepte($i,$j,$k); // s'assurer que la cabane est unique
+    				}while(!$this->_tab[$i]->accepte($j,$k,$distance));
     			}
+		return $phrase;
 	}
 	
 	public function accepte($id,$lig,$col) {
@@ -75,17 +88,35 @@ class Calcul{
 	public function getGroupe($id) {
 		return $this->_tab[$id];
 	}
+	
+	public function versClient($seed) {
+		$retour="{\"cabanes\":[";
+		foreach ($this->_tab as $groupe) { // pour chaque groupe
+			for($i=0;$i<$groupe->getLigne();$i++) // pour chaque ligne
+				for($j=0;$j<$groupe->getColonne();$j++) { // pour chaque colonne
+					$retour.="{";
+					$retour.="\"x\":".$groupe->getCabane($i,$j)->getX().",";
+					$retour.="\"y\":".$groupe->getCabane($i,$j)->getY().",";
+					$retour.="\"texture\":\"".$groupe->getCabane($i,$j)->getString()."\",";
+					$retour.="\"orientation\":\"".$groupe->getCabane($i,$j)->getOuverture()."\"},";
+				}
+		}
+		$retour=substr($retour,0,strlen($retour)-1);
+		$retour .= "],\"seed\":\"".$seed."\"}";
+		echo $retour;
+	}
 }
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL); 
 
-$test=new Calcul;
-$test->charge(); // charge xml
-echo $test->getGroupe(1)->getCabane(0,0)->getString().'<br />'; // 1ere cabane initialiser par défaut
-$test->ramdom("LH 2017"); // random
-echo $test->getGroupe(1)->getCabane(0,0)->getString().'<br />'; // meme cabane mais apres initialisation
+if(isset($_POST['seed']) && isset($_POST['distance'])){
+	$test=new Calcul;
+	$test->charge(); // charge xml
+	$seed=$test->ramdom($_POST['seed'],$_POST['distance']); // random
+	$test->versClient($seed);
+}
 
 
 ?>

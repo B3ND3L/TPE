@@ -9,11 +9,15 @@ var cubeVerticesBuffer;
 var cubeVerticesColorBuffer;
 var cubeVerticesIndexBuffer;
 
+var colors;
+
 var cielTexture;
 var cielImage;
+var terasseImage;
 
 var solTexture;
 var solImage;
+var terasseTexture;
 
 var cubeRotation = 0.0;
 
@@ -43,7 +47,9 @@ var lookZ = 0;
 var mvMatrixStack = [];
 
 var tabCabane;
-getCabanes();
+var seed;
+
+appelPhp();
 
 //
 // start
@@ -168,30 +174,19 @@ function initBuffers() {
 
 		];
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-		var colors = [
-			[0.0,  1.0,  1.0,  1.0],   
-			[1.0,  0.0,  0.0,  1.0],   
-			[0.0,  1.0,  0.0,  1.0],    
-			[0.0,  0.0,  1.0,  1.0],   
-			[1.0,  1.0,  0.0,  1.0],    
-			[1.0,  0.0,  1.0,  1.0],
-			[0.5,  0.2,  0.5,  0.0],
-			[0.2,  0.7,  0.6,  1.0],
-			[0.8,  1.0,  0.2,  1.0],
-			[1.0,  1.0,  1.0,  1.0]
-		];
-		var generatedColors = [];
-		for (j=0; j<10; j++) {
-		var c = colors[j];
-		for (var i=0; i<4; i++) {
-		generatedColors = generatedColors.concat(c);
-		}
-		}
-
-		cabaneVerticesColorBuffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, cabaneVerticesColorBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
-
+		colors = [];
+		colors['a']=[1.0,  0.0,  0.0,  1.0];//RED 
+		colors['b']=[1.0,  0.3,  0.0,  1.0];//ORANGE
+		colors['c']=[1.0,  0.9,  0.0,  1.0];//YELLOW
+		colors['d']=[0.0,  0.5,  0.2,  1.0];//GREEN
+		colors['e']=[0.0,  0.0,  1.0,  1.0];//BLUE
+		colors['f']=[0.3,  0.0,  0.5,  1.0];//PURPLE
+		colors['g']=[0.5,  0.8,  0.8,  1.0];//BLUE GREY
+		colors['h']=[0.9,  0.7,  0.9,  1.0];//PASTEL PINK
+		colors['i']=[0.3,  0.3,  0.5,  1.0];//PASTEL MARINE
+		colors['j']=[0.5,  0.5,  0.5,  1.0];//GREY
+		
+		
 		// Build the element array buffer; this specifies the indices
 		// into the vertex array for each face's vertices.
 
@@ -376,7 +371,11 @@ function initTextures() {
 	solImage = new Image();
 	solImage.onload = function() { handleTextureLoaded(solImage, solTexture); }
 	solImage.src = "rsc/sol.png";
-  
+	
+	terasseTexture = gl.createTexture();
+	terasseImage = new Image();
+	terasseImage.onload = function() { handleTextureLoaded(terasseImage, terasseTexture); }
+	terasseImage.src = "rsc/terasse.png";
 }
 
 function handleTextureLoaded(image, texture) {
@@ -398,10 +397,6 @@ function drawScene() {
 
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-	// Establish the perspective with which we want to view the
-	// scene. Our field of view is 45 degrees, with a width/height
-	// ratio of 640:480, and we only want to see objects between 0.1 units
-	// and 100 units away from the camera.
 	
 	loadIdentity();
 	
@@ -411,18 +406,24 @@ function drawScene() {
 	lookZ = distance * Math.sin(tetha) * Math.sin(alpha) + posZ;
 	lookY = distance * Math.cos(tetha) + 1.0;
 
-	var projectionMatrix = makePerspective(100, 640.0/480.0, 0.1, 100000.0);
+	var projectionMatrix = makePerspective(100, 1280/720, 0.2, 100000.0);
 	var lookMatrix = makeLookAt(posX, posY, posZ, lookX, lookY, lookZ, 0.0,1.0,0.0);
 	
 	cameraMatrix = projectionMatrix;
 	cameraMatrix = cameraMatrix.multiply(lookMatrix);
 	
-	activeCabaneShader();
 	tabCabane.forEach(function(c) {
+		activeCabaneShader();
 		mvPushMatrix();
-			mvTranslate([c.x, 1, c.y]);
+			mvTranslate([c.x, 1.5, c.y]);
 			mvScale([2,2,2]);
-			afficherCabane();
+			afficherCabane(c.texture);
+		mvPopMatrix();
+		mvPushMatrix();
+			(c.orientation=="s")?mvTranslate([c.x+2,0.5,c.y]):mvTranslate([c.x,0.5,c.y+2]);
+			activeTextureShader();
+			mvScale([1,0.05,1]);
+			afficheTerasse();
 		mvPopMatrix();
 	});
 
@@ -457,6 +458,22 @@ function afficherCiel(){
 
 }
 
+function afficheTerasse(){
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesBuffer);
+	gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTexturePatronCoordBuffer);
+	gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, terasseTexture);
+	gl.uniform1i(gl.getUniformLocation(shaderProgramCube, "uSampler"), 0);
+
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVerticesIndexBuffer);
+	setMatrixUniforms(shaderProgramCube);
+	gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+}
+
 function afficherSol(){
 	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesBuffer);
 	gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
@@ -474,7 +491,24 @@ function afficherSol(){
 
 }
 
-function afficherCabane(){
+function afficherCabane(textureCabane){
+	
+	var generatedColors = [];
+	for (var j=0; j<8; j++) {
+		var lettre = textureCabane[j*2];
+		var c = colors[lettre];
+		for (var i=0; i<4; i++) {
+			generatedColors = generatedColors.concat(c);
+		}
+	}
+	for (var i=0; i<8; i++) {
+		generatedColors = generatedColors.concat([0.0,0.0,0.0,1.0]);
+	}
+	
+	cabaneVerticesColorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, cabaneVerticesColorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
+	
 	gl.bindBuffer(gl.ARRAY_BUFFER, cabaneVerticesBuffer);
 	gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
@@ -666,7 +700,7 @@ function keyboard(key, x, y){
 			posZ -= vecteurZ * pas;
 			lookZ -= vecteurZ * pas; 
 		 }
-		 if(-vecteurX<0 && posX > 0 || -vecteurX > 0){
+		 if(-vecteurX<0 || -vecteurX > 0){
 			posX -= vecteurX * pas;
 			lookX -= vecteurX * pas;
 		}

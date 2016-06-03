@@ -61,14 +61,14 @@ class Cabane {
 		return $retour;
 	}
 	
-	// savoir si l'objet cabane à les même attribut qu'une autre avec rotation
+	// savoir si l'objet cabane à les mêmes attributs qu'une autre avec rotation
 	public function estEgale($s1) {
 		$s=$this->getString();
-		for($i=0;$i<16;$i++) {
+		for($i=0;$i<strlen($s);$i+=2) {
 			if($s==$s1)
 				return true;
-			$c=$s1[0];
-			$s1=substr($s1,1,15).$c;
+			$s2=$s1[0].$s1[1];
+			$s1=substr($s1,1,14).$s1;
 		}
 		return false;
 	}

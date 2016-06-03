@@ -28,6 +28,20 @@ class Groupe {
 			return;
 	}
 	
+	public function accepte($ligne,$colonne,$distance) {
+		$init=$ligne>$distance?$ligne-$distance:0;
+		for($i=$init;$i<$ligne;$i++)
+			if($this->_tab[$ligne][$colonne]->getNord()->ressemble($this->_tab[$i][$colonne]->getNord())
+					|| $this->_tab[$ligne][$colonne]->getSud()->ressemble($this->_tab[$i][$colonne]->getSud()))
+				return false;
+		$init=$colonne>$distance?$colonne-$distance:0;
+		for($i=$init;$i<$colonne;$i++)
+			if($this->_tab[$ligne][$colonne]->getEst()->ressemble($this->_tab[$ligne][$i]->getEst())
+					|| $this->_tab[$ligne][$colonne]->getOuest()->ressemble($this->_tab[$ligne][$i]->getOuest()))
+				return false;
+		return true;
+	}
+	
 	public function getLigne() {return $this->_ligne;}
 	public function getColonne() {return $this->_colonne;}
 }
