@@ -5,19 +5,30 @@ var cabaneVerticesBuffer;
 var cabaneVerticesColorBuffer;
 var cabaneVerticesIndexBuffer;
 
+var cabaneVerticesTextureCoordBuffer;
+
 var cubeVerticesBuffer;
 var cubeVerticesColorBuffer;
 var cubeVerticesIndexBuffer;
+
 
 var colors;
 
 var cielTexture;
 var cielImage;
-var terasseImage;
 
 var solTexture;
 var solImage;
+
+var terasseImage;
 var terasseTexture;
+
+var pan0Image; var pan0Texture;
+var pan1Image; var pan1Texture;
+var pan2Image; var pan2Texture;
+var pan3Image; var pan3Texture;
+var pan4Image; var pan4Texture;
+var pan5Image; var pan5Texture;
 
 var cubeRotation = 0.0;
 
@@ -131,9 +142,9 @@ function initBuffers() {
 			// Right Face
 			// First Pane
 			 d,  d,  d,		//C
-			 d, -d,  d,		//D
-			 d, -d,  0,		//I
 			 d,  d,  0,		//H
+			 d, -d,  0,		//I
+			 d, -d,  d,		//D
 			// Second Pane
 			 d,  d,  0,		//H
 			 d,  d, -d,		//M
@@ -142,25 +153,25 @@ function initBuffers() {
 			// Back Face
 			// First Pane
 			 d,  d, -d,		//M
-			 d, -d, -d,		//N
-			 0, -d, -d,		//O
 			 0,  d, -d,		//L
+			 0, -d, -d,		//O
+			 d, -d, -d,		//N
 			// Seconde Pane
 			 0,  d, -d,		//L
-			-d,  d, -d,		//K
-			-d, -d, -d,		//P
+			-d,  d, -d,		//P
+			-d, -d, -d,		//K
 			 0, -d, -d,		//O
 			// Left Face
 			// First Pane
-			-d, -d,  d,		//F
-			-d, -d,  0,		//J
+			-d,  d, -d,		//P
 			-d,  d,  0,		//G
-			-d,  d,  d,		//A
+			-d, -d,  0,		//J
+			-d, -d, -d,		//K
 			// Second Pane
-			-d, -d,  0,		//J
-			-d, -d, -d,		//P
-			-d,  d, -d,		//K
+			-d,  d,  d,		//A
 			-d,  d,  0,		//G
+			-d, -d,  0,		//J
+			-d, -d,  d,		//F
 			// Top face
 			-d,  d,  d,		//A
 			 d,  d,  d,		//C
@@ -210,6 +221,67 @@ function initBuffers() {
 
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
 		new Uint16Array(cabaneVertexIndices), gl.STATIC_DRAW);
+		
+		cabaneVerticesTextureCoordBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, cabaneVerticesTextureCoordBuffer);
+
+		var textureCabaneCoordinates = [
+			// Front p1
+			0.0,  	0.0,
+			1.0, 	0.0,
+			1.0,	1.0,
+			0.0,  	1.0,
+			// Front p2
+			0.0,  	0.0,
+			1.0, 	0.0,
+			1.0,	1.0,
+			0.0,  	1.0,
+			// Right p1
+			0.0,  	0.0,
+			1.0, 	0.0,
+			1.0,	1.0,
+			0.0,  	1.0,
+			// Right p2
+			0.0,  	0.0,
+			1.0, 	0.0,
+			1.0,	1.0,
+			0.0,  	1.0,
+			// Back p1
+			0.0,  	0.0,
+			1.0, 	0.0,
+			1.0,	1.0,
+			0.0,  	1.0,
+			// Back p2
+			0.0,  	0.0,
+			1.0, 	0.0,
+			1.0,	1.0,
+			0.0,  	1.0,
+			// Left p1
+			0.0,  	0.0,
+			1.0, 	0.0,
+			1.0,	1.0,
+			0.0,  	1.0,
+			// Left p2
+			0.0,  	0.0,
+			1.0, 	0.0,
+			1.0,	1.0,
+			0.0,  	1.0,
+			// Top
+			0.0,  	0.0,
+			1.0, 	0.0,
+			1.0,	1.0,
+			0.0,  	1.0,
+			// Bottom
+			0.0,  	0.0,
+			1.0, 	0.0,
+			1.0,	1.0,
+			0.0,  	1.0
+			
+		];
+
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCabaneCoordinates),
+			gl.STATIC_DRAW);
+		
 	}
 
 	//CUBE STANDARD
@@ -376,13 +448,44 @@ function initTextures() {
 	terasseImage = new Image();
 	terasseImage.onload = function() { handleTextureLoaded(terasseImage, terasseTexture); }
 	terasseImage.src = "rsc/terasse.png";
+	
+	pan0Texture = gl.createTexture();
+	pan0Image = new Image();
+	pan0Image.onload = function() { handleTextureLoaded(pan0Image, pan0Texture); }
+	pan0Image.src = "rsc/pan0.png";
+	
+	pan1Texture = gl.createTexture();
+	pan1Image = new Image();
+	pan1Image.onload = function() { handleTextureLoaded(pan1Image, pan1Texture); }
+	pan1Image.src = "rsc/pan1.png";                         
+	                                                        
+	pan2Texture = gl.createTexture();                       
+	pan2Image = new Image();                                
+	pan2Image.onload = function() { handleTextureLoaded(pan2Image, pan2Texture); }
+	pan2Image.src = "rsc/pan2.png";                         
+	                                                        
+	pan3Texture = gl.createTexture();                       
+	pan3Image = new Image();                                
+	pan3Image.onload = function() { handleTextureLoaded(pan3Image, pan3Texture); }
+	pan3Image.src = "rsc/pan3.png";                         
+	                                                        
+	pan4Texture = gl.createTexture();                       
+	pan4Image = new Image();                                
+	pan4Image.onload = function() { handleTextureLoaded(pan4Image, pan4Texture); }
+	pan4Image.src = "rsc/pan4.png";                         
+	                                                        
+	pan5Texture = gl.createTexture();                       
+	pan5Image = new Image();                                
+	pan5Image.onload = function() { handleTextureLoaded(pan5Image, pan5Texture); }
+	pan5Image.src = "rsc/pan5.png";
+
 }
 
 function handleTextureLoaded(image, texture) {
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-  //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
   gl.generateMipmap(gl.TEXTURE_2D);
   gl.bindTexture(gl.TEXTURE_2D, null);
 }
@@ -514,10 +617,27 @@ function afficherCabane(textureCabane){
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, cabaneVerticesColorBuffer);
 	gl.vertexAttribPointer(vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
+	
+	gl.bindBuffer(gl.ARRAY_BUFFER, cabaneVerticesTextureCoordBuffer);
+	gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cabaneVerticesIndexBuffer);
 	setMatrixUniforms(shaderProgramCabane);
-	gl.drawElements(gl.TRIANGLES, 56, gl.UNSIGNED_SHORT, 0);
+	
+	for(var i=0;i<10;i++){
+		gl.activeTexture(gl.TEXTURE0);
+			var numero = textureCabane[i*2+1];
+			
+			switch(numero){
+				case "1": gl.bindTexture(gl.TEXTURE_2D, pan0Texture);break;
+				case "2": gl.bindTexture(gl.TEXTURE_2D, pan1Texture);break;
+				case "3": gl.bindTexture(gl.TEXTURE_2D, pan2Texture);break;
+				case "4": gl.bindTexture(gl.TEXTURE_2D, pan3Texture);break;
+				case "5": gl.bindTexture(gl.TEXTURE_2D, pan4Texture);break;
+				case "6": gl.bindTexture(gl.TEXTURE_2D, pan5Texture);break;
+			}
+		gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 2*i*6);
+	}
 }
 
 //
@@ -571,6 +691,9 @@ function activeCabaneShader(){
 
 	vertexColorAttribute = gl.getAttribLocation(shaderProgramCabane, "aVertexColor");
 	gl.enableVertexAttribArray(vertexColorAttribute);
+	
+	textureCoordAttribute = gl.getAttribLocation(shaderProgramCube, "aTextureCoord");
+	gl.enableVertexAttribArray(textureCoordAttribute);
 
 }
 

@@ -13,24 +13,36 @@
 
 		<script id="shader-vs-cabane" type="x-shader/x-vertex">
 			attribute vec3 aVertexPosition;
+			attribute vec2 aTextureCoord;
 			attribute vec4 aVertexColor;
 
 			uniform mat4 uMVMatrix;
 			uniform mat4 uPMatrix;
 
-			varying lowp vec4 vColor;
+			varying highp vec2 vTextureCoord;
+			varying highp vec4 vColor;
 
 			void main(void) {
 				gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-				vColor = aVertexColor;
+				vTextureCoord = aTextureCoord;
+				vColor=aVertexColor;
 			}
 		</script>
 
 		<script id="shader-fs-cabane" type="x-shader/x-fragment">
-			varying lowp vec4 vColor;
+			varying highp vec2 vTextureCoord;
+			varying highp vec4 vColor;
+
+			uniform sampler2D uSampler;
 
 			void main(void) {
-				gl_FragColor = vColor;
+				highp vec4 c = (texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)) * vColor);
+				
+				if(c.x==0.0 && c.y==0.0 && c.z==0.0){
+					c = vec4(1.0,1.0,1.0,1.0);
+				}
+				
+				gl_FragColor = c;
 			}
 		</script>
 
