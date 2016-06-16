@@ -77,9 +77,15 @@
 			Votre navigateur ne semble pas supporter l'élément HTML5 <code>&lt;canvas&gt;</code>.
 		</canvas>
 		<form>
-			<input type="number" id="distance" value="2"/>
-			<input type="text" id="seed" placeholder="SEED"/>
-			<input type="button" name="rafraichir" value="rafraichir" onclick="appelPhp();" />
+			<table><tr>
+				<td><label>Beach hut number <img width="10px" src="rsc/info.png" title="This number is the beach huts number which limits the pattern/color repetition (uniqueness of pattern color association). Default is 2."/></label></td>
+				<td><input type="number" id="distance" value="2"/></td>
+			</tr><tr>
+				<td><label>Generation seed <img width="10px" src="rsc/info.png" title="This value is the generation seed. Each seed has its own result. Example : LeHavre2017"/></label></td>
+				<td><input type="text" id="seed" placeholder="SEED"/></td>
+			</tr><tr>
+				<td><input type="button" name="rafraichir" value="Refresh" onclick="appelPhp();" /></td>
+			</tr></table>
 		</form>
 	</body>
 </html>

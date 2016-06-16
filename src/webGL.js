@@ -88,7 +88,7 @@ function start() {
     initTextures();
 
     // On affiche la scene avec un frame rate à 35FPS
-    setInterval(drawScene, 1000/35);
+    drawScene();
   }
 }
 
@@ -507,7 +507,7 @@ function drawScene() {
 	
 	lookX = distance * Math.sin(tetha) * Math.cos(alpha) + posX;
 	lookZ = distance * Math.sin(tetha) * Math.sin(alpha) + posZ;
-	lookY = distance * Math.cos(tetha) + 1.0;
+	lookY = distance * Math.cos(tetha) + posY;
 
 	var projectionMatrix = makePerspective(100, 1280/720, 0.2, 100000.0);
 	var lookMatrix = makeLookAt(posX, posY, posZ, lookX, lookY, lookZ, 0.0,1.0,0.0);
@@ -773,9 +773,7 @@ function getShader(gl, id) {
 //
 
 function souris(event)
-{
-	console.log("regarde");
-	
+{	
 	var x = event.clientX;
 	var y = event.clientY;
 	
@@ -786,12 +784,13 @@ function souris(event)
 
 	if(dx<0) alpha -= D_ANGLE;
 	else if(dx>0) alpha += D_ANGLE;
-	if(dy<0 && tetha <=Math.PI) tetha += D_ANGLE;
-	else if(dy>0 && tetha>= 0) tetha -= D_ANGLE;
+	if(dy>0 && tetha <=Math.PI) tetha += D_ANGLE;
+	else if(dy<0 && tetha>= 0) tetha -= D_ANGLE;
 		
 	ancien_x=x;
 	ancien_y=y;
  
+	drawScene();
 }
 
 function keyboard(key, x, y){
@@ -805,7 +804,7 @@ function keyboard(key, x, y){
 	
 	var vecteurPerpendiculaireX = -vecteurZ;
 	var vecteurPerpendiculaireZ = vecteurX;
-	var pas = 0.5;
+	var pas = 0.2;
 	
 	switch(key.keyCode){
 	case 90 : 
@@ -848,8 +847,20 @@ function keyboard(key, x, y){
 			lookX += vecteurPerpendiculaireX * pas;
 		}
 		break;
+	case 32 : 	
+		posY += pas;
+		lookY+= pas;
+		break;
+	case 17 :
+		if(posY > 1.6){
+			posY -= pas;
+			lookY-= pas;
+		}
+		break;
+	default : console.log(key.keyCode);
 	}
-	console.log("marche"); 
+
+	drawScene();
 }
 
 //
